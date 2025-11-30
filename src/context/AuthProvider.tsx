@@ -4,7 +4,7 @@ import { AuthContext } from "./context";
 import { useEffect, type ReactNode } from "react";
 import Api from "@services/api";
 import type { LoginRequest, RegisterRequest } from "@interfaces/auth";
-import { login as loginService, register as registerService } from "@services/auth";
+import authService from "@services/auth.service";
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
     const { token, setToken } = useTokenStore();
@@ -19,7 +19,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     }, [token]);
 
     const login = async (data: LoginRequest) => {
-        const response = await loginService(data);
+        const response = await authService.login(data);
         if (response.data.token) {
             setToken(response.data.token);
             setUser({
@@ -31,9 +31,16 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const register = async (data: RegisterRequest) => {
-        await registerService(data);
-        // Auto-login logic is handled in the component or we can do it here if we want
-        // For now, just register.
+        const response = await authService.register(data);
+        // Si el registro devuelve token, auto-login
+        if (response.data.token) {
+            setToken(response.data.token);
+            setUser({
+                nombre: data.nombre,
+                correo: response.data.correo,
+                role: response.data.role || data.role
+            });
+        }
     };
 
     const logout = () => {
@@ -42,8 +49,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     };
 
     const refreshUser = async () => {
-        // Implement if there's a /me endpoint, otherwise rely on stored user
-        // For this refactor, we'll keep it simple as per example
+        try {
+            const response = await authService.getMe();
+            if (response.data.usuario) {
+                setUser(response.data.usuario);
+            }
+        } catch (error) {
+            console.error("Error al refrescar usuario:", error);
+            // Si falla, mantener el usuario actual o hacer logout
+        }
     };
 
     return (

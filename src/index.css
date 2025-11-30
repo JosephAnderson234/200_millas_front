@@ -15,10 +15,11 @@
   /* Dark gray text */
   --color-accent: #e31c23;
   /* Red accent often found in seafood places or promos */
+  --font-primary: "Tablet Gothic Compressed W02Bd";
 }
 
 body {
-  @apply bg-[var(--color-secondary)] text-[var(--color-text)] font-sans antialiased;
+  @apply bg-secondary text-text font-primary antialiased;
 }
 
 /* Custom Scrollbar */

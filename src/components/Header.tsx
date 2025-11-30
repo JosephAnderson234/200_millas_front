@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '@hooks/useAuth';
+import logoIcon from "@assets/logo.png"
 
 const Header = () => {
     const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -14,10 +15,11 @@ const Header = () => {
     };
 
     return (
-        <header className="bg-[var(--color-primary)] text-white fixed w-full z-50 transition-all duration-300 shadow-md">
+        <header className="bg-primary text-white fixed w-full z-50 transition-all duration-300 shadow-md">
             <div className="container mx-auto px-4 py-4 flex justify-between items-center">
                 {/* Logo */}
-                <Link to="/" className="text-2xl font-bold tracking-wider text-white">
+                <Link to="/" className="text-2xl font-bold tracking-wider text-white flex items-center">
+                    <img src={logoIcon} alt="200 Millas Logo" className="h-8 w-8 mr-2" />
                     200 MILLAS
                 </Link>
 
@@ -34,7 +36,7 @@ const Header = () => {
                                 <Link to="/profile" className="hover:text-gray-300 transition-colors">Mi Perfil</Link>
                                 <button
                                     onClick={handleLogout}
-                                    className="px-4 py-2 border border-white text-white hover:bg-white hover:text-[var(--color-primary)] transition-all rounded-sm"
+                                    className="px-4 py-2 border border-white text-white hover:bg-white hover:text-primary transition-all rounded-sm"
                                 >
                                     Salir
                                 </button>
@@ -44,7 +46,7 @@ const Header = () => {
                                 <Link to="/login" className="hover:text-gray-300 transition-colors">Login</Link>
                                 <Link
                                     to="/register"
-                                    className="px-4 py-2 bg-white text-[var(--color-primary)] hover:bg-gray-100 transition-all rounded-sm font-bold"
+                                    className="px-4 py-2 bg-white text-primary hover:bg-gray-100 transition-all rounded-sm font-bold"
                                 >
                                     Registro
                                 </Link>
@@ -70,7 +72,7 @@ const Header = () => {
 
             {/* Mobile Navigation */}
             {isMenuOpen && (
-                <nav className="md:hidden bg-[var(--color-primary)] absolute w-full border-t border-white/10 h-screen">
+                <nav className="md:hidden bg-primary absolute w-full border-t border-white/10 h-screen">
                     <div className="flex flex-col items-center py-8 space-y-6 uppercase text-sm tracking-widest">
                         <Link to="/" className="hover:text-gray-300 text-lg" onClick={() => setIsMenuOpen(false)}>Inicio</Link>
                         <Link to="/menu" className="hover:text-gray-300 text-lg" onClick={() => setIsMenuOpen(false)}>Carta</Link>

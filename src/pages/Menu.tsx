@@ -38,7 +38,13 @@ const Menu = () => {
             try {
                 setLoading(true);
                 const response = await getProducts();
-                setProducts(response.contents);
+                // Normalizar precio y stock a números
+                const normalizedProducts = response.contents.map(product => ({
+                    ...product,
+                    precio: typeof product.precio === 'string' ? parseFloat(product.precio) : product.precio,
+                    stock: typeof product.stock === 'string' ? parseInt(product.stock, 10) : product.stock
+                }));
+                setProducts(normalizedProducts as Product[]);
             } catch (error) {
                 console.error('Error fetching products:', error);
             } finally {
@@ -57,16 +63,13 @@ const Menu = () => {
 
     const addToCart = (item: Product) => {
         setCart(prev => {
-            // Use item.nombre + item.local_id as a unique key if id is missing, or just use local_id + name
-            // The API definition says PK is local_id and SK is nombre.
-            // For the cart, we need a unique identifier.
-            const itemId = `${item.local_id}-${item.nombre}`;
+            const itemId = `${item.local_id}-${item.producto_id}`;
 
             const existing = prev.find(i => i.id === itemId);
             if (existing) {
                 return prev.map(i => i.id === itemId ? { ...i, quantity: i.quantity + 1 } : i);
             }
-            return [...prev, { id: itemId, name: item.nombre, price: item.precio, quantity: 1 }];
+            return [...prev, { id: itemId, name: item.nombre, price: Number(item.precio), quantity: 1 }];
         });
     };
 
@@ -119,7 +122,11 @@ const Menu = () => {
                 {!loading && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
                         {filteredItems.map((item, index) => (
-                            <div key={`${item.local_id}-${item.nombre}-${index}`} className="bg-[var(--color-surface)] rounded-lg overflow-hidden border border-gray-200 hover:border-[var(--color-primary)] transition-colors group shadow-sm hover:shadow-md">
+                            <div 
+                                key={`${item.local_id}-${item.producto_id}-${index}`} 
+                                className="bg-[var(--color-surface)] rounded-lg overflow-hidden border border-gray-200 hover:border-[var(--color-primary)] transition-colors group shadow-sm hover:shadow-md cursor-pointer"
+                                onClick={() => navigate(`/product/${item.local_id}/${item.producto_id}`)}
+                            >
                                 <div className="h-48 overflow-hidden relative">
                                     {item.imagen_url ? (
                                         <img
@@ -140,7 +147,10 @@ const Menu = () => {
                                     <h3 className="text-xl font-bold text-[var(--color-text)] mb-2 group-hover:text-[var(--color-primary)] transition-colors">{item.nombre}</h3>
                                     <p className="text-[var(--color-text-light)] text-sm mb-4 line-clamp-2">{item.descripcion}</p>
                                     <button
-                                        onClick={() => addToCart(item)}
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            addToCart(item);
+                                        }}
                                         className="w-full py-2 border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white transition-colors rounded text-sm uppercase tracking-wider font-semibold"
                                     >
                                         Agregar al Pedido

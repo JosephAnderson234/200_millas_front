@@ -5,6 +5,7 @@ import Home from "@pages/Home";
 import Login from "@pages/Login";
 import Register from "@pages/Register";
 import Menu from "@pages/Menu";
+import ProductDetail from "@pages/ProductDetail";
 import Order from "@pages/Order";
 import OrderStatus from "@pages/OrderStatus";
 import Profile from "@pages/Profile";
@@ -22,6 +23,10 @@ export const router = createBrowserRouter([
             {
                 path: "menu",
                 element: <Menu />,
+            },
+            {
+                path: "product/:localId/:productId",
+                element: <ProductDetail />,
             },
 
             // Auth Routes (Anonymous only)

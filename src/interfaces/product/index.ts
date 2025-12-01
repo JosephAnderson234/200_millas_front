@@ -1,10 +1,11 @@
 export interface Product {
     local_id: string;
+    producto_id: string;
     nombre: string;
-    precio: number;
+    precio: string | number;
     descripcion: string;
     categoria: string;
-    stock: number;
+    stock: string | number;
     imagen_url: string;
 }
 
@@ -13,4 +14,8 @@ export interface ProductListResponse {
     size: number;
     next_token?: string;
     page: number;
+}
+
+export interface ProductDetailResponse {
+    producto: Product;
 }

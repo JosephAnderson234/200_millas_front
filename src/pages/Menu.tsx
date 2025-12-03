@@ -5,6 +5,8 @@ import { useNavigate } from 'react-router-dom';
 import { getProducts } from '@services/product';
 import type { Product } from '@interfaces/product';
 import { useLocation } from '@hooks/useLocations';
+import EmptySearch from '@components/EmptySearch';
+import useDebounce from '@hooks/useDebounce';
 
 const CATEGORIES = [
     'Todos',
@@ -34,14 +36,30 @@ const Menu = () => {
     const [loading, setLoading] = useState(true);
     const [cart, setCart] = useState<{ id: string, name: string, price: number, quantity: number }[]>([]);
     const {currentLocation, setLocationById, getAllLocationNameAndIds } = useLocation();
-
-
+    const [page, setPage] = useState(0);
+    const [, setNextToken] = useState<string | null>(null);
+    const [totalPages, setTotalPages] = useState<number>(0);
+    const debouncedSearchTerm = useDebounce(searchTerm, 400);
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
-                const response = await getProducts(currentLocation.id);
+                const finalCategory = selectedCategory === "Todos" ? undefined : selectedCategory;
+                const response = await getProducts(currentLocation.id, {
+                    size: 10,
+                    page: page,
+                    categoria: finalCategory,
+                    include_total: true,
+                    nombre: debouncedSearchTerm
+                });
+                
+                // Guardar información de paginación
+                setNextToken(response.next_token || null);
+                if (response.totalPages !== undefined) {
+                    setTotalPages(response.totalPages);
+                }
+                
                 // Normalizar precio y stock a números
                 const normalizedProducts = response.contents.map(product => ({
                     ...product,
@@ -57,13 +75,8 @@ const Menu = () => {
         };
 
         fetchProducts();
-    }, [currentLocation]);
+    }, [currentLocation, selectedCategory, page, debouncedSearchTerm]);
 
-    const filteredItems = products.filter(item => {
-        const matchesSearch = item.nombre.toLowerCase().includes(searchTerm.toLowerCase());
-        const matchesCategory = selectedCategory === 'Todos' || item.categoria === selectedCategory;
-        return matchesSearch && matchesCategory;
-    });
 
     const addToCart = (item: Product) => {
         setCart(prev => {
@@ -136,7 +149,7 @@ const Menu = () => {
                 {/* Menu Grid */}
                 {!loading && (
                     <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
-                        {filteredItems.map((item, index) => (
+                        {products.map((item, index) => (
                             <div 
                                 key={`${item.local_id}-${item.producto_id}-${index}`} 
                                 className="bg-surface rounded-lg overflow-hidden border border-gray-200 hover:border-primary transition-colors group shadow-sm hover:shadow-md cursor-pointer"
@@ -173,6 +186,31 @@ const Menu = () => {
                                 </div>
                             </div>
                         ))}
+                        
+                    </div>
+                )}
+                {products.length === 0 && !loading && (<EmptySearch />)}
+
+                {/* Paginación */}
+                {totalPages > 1 && (
+                    <div className="flex justify-center items-center gap-4 mt-8">
+                        <button
+                            onClick={() => setPage(prev => Math.max(0, prev - 1))}
+                            disabled={page === 0}
+                            className="px-4 py-2 bg-primary text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-primary-hover transition-colors"
+                        >
+                            Anterior
+                        </button>
+                        <span className="text-text font-semibold">
+                            Página {page + 1} de {totalPages}
+                        </span>
+                        <button
+                            onClick={() => setPage(prev => Math.min(totalPages - 1, prev + 1))}
+                            disabled={page >= totalPages - 1}
+                            className="px-4 py-2 bg-primary text-white rounded disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-primary-hover transition-colors"
+                        >
+                            Siguiente
+                        </button>
                     </div>
                 )}
 
@@ -181,7 +219,7 @@ const Menu = () => {
                     <div className="fixed bottom-8 right-8 z-50">
                         <button
                             onClick={goToOrder}
-                            className="bg-[var(--color-primary)] text-white px-6 py-4 rounded-full shadow-lg font-bold flex items-center gap-3 hover:bg-[var(--color-primary-hover)] transition-transform hover:scale-105"
+                            className="bg-primary text-white px-6 py-4 rounded-full shadow-lg font-bold flex items-center gap-3 hover:bg-primary-hover transition-transform hover:scale-105"
                         >
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />

@@ -1,13 +1,36 @@
 import type { ProductListResponse, ProductDetailResponse } from "@interfaces/product";
 import Api from "@services/api";
 
-export const getProducts = async (localId: string, limit: number = 100, startKey?: string) => {
+export const getProducts = async (
+    localId: string,
+    options?: {
+        size?: number;
+        next_token?: string;
+        page?: number;
+        categoria?: string;
+        include_total?: boolean;
+        nombre?: string;
+    }
+) => {
     const api = await Api.getInstance("products");
-    const response = await api.post<{ local_id: string; limit: number; start_key?: string; }, ProductListResponse>({
+    
+    const payload: {
+        local_id: string;
+        size?: number;
+        next_token?: string;
+        page?: number;
+        categoria?: string;
+        include_total?: boolean;
+        nombre?: string;
+    } = {
         local_id: localId,
-        limit,
-        start_key: startKey,
-    }, { url: "/productos/list" });
+        ...options
+    };
+    
+    const response = await api.post<typeof payload, ProductListResponse>(
+        payload,
+        { url: "/productos/list" }
+    );
     return response.data;
 }
 

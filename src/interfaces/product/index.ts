@@ -12,8 +12,10 @@ export interface Product {
 export interface ProductListResponse {
     contents: Product[];
     size: number;
-    next_token?: string;
-    page: number;
+    next_token?: string | null;
+    page?: number;
+    totalElements?: number;
+    totalPages?: number;
 }
 
 export interface ProductDetailResponse {

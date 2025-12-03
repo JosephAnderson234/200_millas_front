@@ -1,11 +1,4 @@
 import Api from "./api";
-import { isMockEnabled } from "../config/mockConfig";
-import {
-    createMockOrder,
-    getMockOrderStatus,
-    updateMockOrderStatus,
-    type MockOrder
-} from "./mockData/orders.mock";
 
 export interface CreateOrderRequest {
     local_id: string;
@@ -57,28 +50,8 @@ export interface ConfirmOrderResponse {
 }
 
 class OrdersService {
-    /**
-     * Crea un nuevo pedido
-     */
     async createOrder(request: CreateOrderRequest): Promise<CreateOrderResponse> {
-        // Si está habilitado el modo mock, devolver datos mockeados
-        if (isMockEnabled()) {
-            console.log("🎭 [MOCK] Creando pedido mockeado");
-            
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    const mockOrder = createMockOrder(request);
-                    
-                    resolve({
-                        message: "Pedido registrado",
-                        pedido: {
-                            ...mockOrder,
-                            costo: mockOrder.costo.toString()
-                        }
-                    });
-                }, 800);
-            });
-        }
+        
 
         // Llamada real a la API
         const api = await Api.getInstance("clientes");
@@ -90,28 +63,8 @@ class OrdersService {
         return response.data;
     }
 
-    /**
-     * Consulta el estado de un pedido
-     */
     async getOrderStatus(request: GetOrderStatusRequest): Promise<GetOrderStatusResponse> {
-        // Si está habilitado el modo mock, devolver datos mockeados
-        if (isMockEnabled()) {
-            console.log("🎭 [MOCK] Consultando estado de pedido:", request.pedido_id);
-            
-            return new Promise((resolve, reject) => {
-                setTimeout(() => {
-                    const status = getMockOrderStatus(request.pedido_id);
-                    
-                    if (status) {
-                        resolve(status);
-                    } else {
-                        reject(new Error("Pedido no encontrado"));
-                    }
-                }, 400);
-            });
-        }
-
-        // Llamada real a la API
+        
         const api = await Api.getInstance("clientes");
         const response = await api.get<void, GetOrderStatusResponse>({
             url: "/pedido/status",
@@ -128,24 +81,7 @@ class OrdersService {
      * Cliente confirma la recepción del pedido
      */
     async confirmOrder(request: ConfirmOrderRequest): Promise<ConfirmOrderResponse> {
-        // Si está habilitado el modo mock, devolver datos mockeados
-        if (isMockEnabled()) {
-            console.log("🎭 [MOCK] Confirmando pedido:", request.order_id);
-            
-            return new Promise((resolve) => {
-                setTimeout(() => {
-                    // Actualizar estado del pedido mockeado
-                    updateMockOrderStatus(request.order_id, "entregado");
-                    
-                    resolve({
-                        message: "ConfirmarPedidoCliente event published",
-                        order_id: request.order_id
-                    });
-                }, 600);
-            });
-        }
-
-        // Llamada real a la API
+        
         const api = await Api.getInstance("clientes");
         const response = await api.post<ConfirmOrderRequest, ConfirmOrderResponse>(
             request,

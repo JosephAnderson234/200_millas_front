@@ -1,9 +1,7 @@
 import type { ProductListResponse, ProductDetailResponse } from "@interfaces/product";
 import Api from "@services/api";
 
-const DEFAULT_LOCAL_ID = 'LOCAL-001';
-
-export const getProducts = async (localId: string = DEFAULT_LOCAL_ID, limit: number = 100, startKey?: string) => {
+export const getProducts = async (localId: string, limit: number = 100, startKey?: string) => {
     const api = await Api.getInstance("products");
     const response = await api.post<{ local_id: string; limit: number; start_key?: string; }, ProductListResponse>({
         local_id: localId,

@@ -4,6 +4,7 @@ import Footer from '../components/Footer';
 import { useNavigate } from 'react-router-dom';
 import { getProducts } from '@services/product';
 import type { Product } from '@interfaces/product';
+import { useLocation } from '@hooks/useLocations';
 
 const CATEGORIES = [
     'Todos',
@@ -32,12 +33,15 @@ const Menu = () => {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [cart, setCart] = useState<{ id: string, name: string, price: number, quantity: number }[]>([]);
+    const {currentLocation, setLocationById, getAllLocationNameAndIds } = useLocation();
+
+
 
     useEffect(() => {
         const fetchProducts = async () => {
             try {
                 setLoading(true);
-                const response = await getProducts();
+                const response = await getProducts(currentLocation.id);
                 // Normalizar precio y stock a números
                 const normalizedProducts = response.contents.map(product => ({
                     ...product,
@@ -53,7 +57,7 @@ const Menu = () => {
         };
 
         fetchProducts();
-    }, []);
+    }, [currentLocation]);
 
     const filteredItems = products.filter(item => {
         const matchesSearch = item.nombre.toLowerCase().includes(searchTerm.toLowerCase());
@@ -78,10 +82,10 @@ const Menu = () => {
     };
 
     return (
-        <div className="min-h-screen flex flex-col bg-[var(--color-secondary)]">
+        <div className="min-h-screen flex flex-col bg-secondary">
             <Header />
-            <main className="flex-grow pt-24 pb-12 px-4 container mx-auto">
-                <h1 className="text-4xl font-bold text-[var(--color-text)] mb-8 text-center">Nuestra Carta</h1>
+            <main className="grow pt-24 pb-12 px-4 container mx-auto">
+                <h1 className="text-4xl font-bold text-text mb-8 text-center">Nuestra Carta</h1>
 
                 {/* Search and Filter */}
                 <div className="flex flex-col md:flex-row justify-between items-center mb-12 gap-4">
@@ -91,17 +95,28 @@ const Menu = () => {
                             placeholder="Buscar platos..."
                             value={searchTerm}
                             onChange={(e) => setSearchTerm(e.target.value)}
-                            className="w-full bg-[var(--color-surface)] border border-gray-300 rounded px-4 py-2 text-[var(--color-text)] focus:border-[var(--color-primary)] focus:outline-none"
+                            className="w-full bg-surface border border-gray-300 rounded px-4 py-2 text-text focus:border-primary focus:outline-none"
                         />
                     </div>
-                    <div className="flex flex-wrap gap-2 justify-center max-h-40 overflow-y-auto p-2">
+                    <div>
+                        {/*Location selection */}
+                        <select
+                            value={currentLocation.id}
+                            onChange={(e) => setLocationById(e.target.value)} 
+                            >
+                            {getAllLocationNameAndIds().map(loc => (
+                                <option key={loc.id} value={loc.id}>{loc.name}</option>
+                            ))}
+                            </select>
+                    </div>
+                    <div className="flex flex-wrap gap-2 justify-center max-h-48 overflow-y-auto p-2">
                         {CATEGORIES.map(cat => (
                             <button
                                 key={cat}
                                 onClick={() => setSelectedCategory(cat)}
                                 className={`px-4 py-2 rounded-full text-sm transition-colors whitespace-nowrap ${selectedCategory === cat
-                                    ? 'bg-[var(--color-primary)] text-white font-bold'
-                                    : 'bg-[var(--color-surface)] text-[var(--color-text-light)] hover:bg-gray-200'
+                                    ? 'bg-primary text-white font-bold'
+                                    : 'bg-surface text-text-light hover:bg-gray-200'
                                     }`}
                             >
                                 {cat}
@@ -113,8 +128,8 @@ const Menu = () => {
                 {/* Loading State */}
                 {loading && (
                     <div className="text-center py-12">
-                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-[var(--color-primary)] mx-auto"></div>
-                        <p className="mt-4 text-[var(--color-text-light)]">Cargando carta...</p>
+                        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary mx-auto"></div>
+                        <p className="mt-4 text-text-light">Cargando carta...</p>
                     </div>
                 )}
 
@@ -124,7 +139,7 @@ const Menu = () => {
                         {filteredItems.map((item, index) => (
                             <div 
                                 key={`${item.local_id}-${item.producto_id}-${index}`} 
-                                className="bg-[var(--color-surface)] rounded-lg overflow-hidden border border-gray-200 hover:border-[var(--color-primary)] transition-colors group shadow-sm hover:shadow-md cursor-pointer"
+                                className="bg-surface rounded-lg overflow-hidden border border-gray-200 hover:border-primary transition-colors group shadow-sm hover:shadow-md cursor-pointer"
                                 onClick={() => navigate(`/product/${item.local_id}/${item.producto_id}`)}
                             >
                                 <div className="h-48 overflow-hidden relative">
@@ -139,19 +154,19 @@ const Menu = () => {
                                             <span className="text-4xl">🍽️</span>
                                         </div>
                                     )}
-                                    <div className="absolute top-2 right-2 bg-[var(--color-primary)] text-white px-3 py-1 rounded-full text-sm font-bold">
+                                    <div className="absolute top-2 right-2 bg-primary text-white px-3 py-1 rounded-full text-sm font-bold">
                                         S/ {item.precio}
                                     </div>
                                 </div>
                                 <div className="p-6">
-                                    <h3 className="text-xl font-bold text-[var(--color-text)] mb-2 group-hover:text-[var(--color-primary)] transition-colors">{item.nombre}</h3>
-                                    <p className="text-[var(--color-text-light)] text-sm mb-4 line-clamp-2">{item.descripcion}</p>
+                                    <h3 className="text-xl font-bold text-text mb-2 group-hover:text-primary transition-colors">{item.nombre}</h3>
+                                    <p className="text-text-light text-sm mb-4 line-clamp-2">{item.descripcion}</p>
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
                                             addToCart(item);
                                         }}
-                                        className="w-full py-2 border border-[var(--color-primary)] text-[var(--color-primary)] hover:bg-[var(--color-primary)] hover:text-white transition-colors rounded text-sm uppercase tracking-wider font-semibold"
+                                        className="w-full py-2 border border-primary text-primary hover:bg-primary hover:text-white transition-colors rounded text-sm uppercase tracking-wider font-semibold"
                                     >
                                         Agregar al Pedido
                                     </button>

@@ -21,7 +21,7 @@ const Login = () => {
             navigate('/');
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         } catch (err: any) {
-            setErrorMessage(err?.response?.data?.message || err?.message || 'Error al iniciar sesión');
+            setErrorMessage(err?.response?.data?.error || err?.message || 'Error al iniciar sesión');
         }
     };
 

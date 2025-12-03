@@ -4,6 +4,7 @@ import type {
     AxiosResponse,
     RawAxiosRequestHeaders,
 } from "axios";
+import { useTokenStore } from "@store/useTokenStore";
 
 export type ApiType =
     | "default"
@@ -83,6 +84,14 @@ export default class Api {
                 throw new Error(
                     `Variable de entorno ${cfg.envVar} no configurada y no hay fallback`
                 );
+            }
+
+            // Obtener el token desde useTokenStore si no hay token en memoria
+            if (!Api._lastToken) {
+                const token = useTokenStore.getState().token;
+                if (token) {
+                    Api._lastToken = token;
+                }
             }
 
             const instance = new Api(envVal, Api._lastToken);

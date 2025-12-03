@@ -87,24 +87,44 @@ const OrderStatus = () => {
         
         return [
             { 
+                status: 'Enviando', 
+                completed: ['enviando', 'procesando', 'en_preparacion', 'cocina_completa', 'empaquetando', 'pedido_en_camino', 'entrega_delivery', 'recibido'].includes(currentState),
+                current: currentState === 'enviando'
+            },
+            { 
                 status: 'Procesando', 
-                completed: true,
+                completed: ['procesando', 'en_preparacion', 'cocina_completa', 'empaquetando', 'pedido_en_camino', 'entrega_delivery', 'recibido'].includes(currentState),
                 current: currentState === 'procesando'
             },
             { 
-                status: 'Preparando', 
-                completed: ['preparando', 'pedido_en_camino', 'entregado'].includes(currentState),
-                current: currentState === 'preparando'
+                status: 'En Preparación', 
+                completed: ['en_preparacion', 'cocina_completa', 'empaquetando', 'pedido_en_camino', 'entrega_delivery', 'recibido'].includes(currentState),
+                current: currentState === 'en_preparacion'
             },
             { 
-                status: 'En Camino', 
-                completed: ['pedido_en_camino', 'entregado'].includes(currentState),
+                status: 'Cocina Completa', 
+                completed: ['cocina_completa', 'empaquetando', 'pedido_en_camino', 'entrega_delivery', 'recibido'].includes(currentState),
+                current: currentState === 'cocina_completa'
+            },
+            { 
+                status: 'Empaquetando', 
+                completed: ['empaquetando', 'pedido_en_camino', 'entrega_delivery', 'recibido'].includes(currentState),
+                current: currentState === 'empaquetando'
+            },
+            { 
+                status: 'Pedido en Camino', 
+                completed: ['pedido_en_camino', 'entrega_delivery', 'recibido'].includes(currentState),
                 current: currentState === 'pedido_en_camino'
             },
             { 
-                status: 'Entregado', 
-                completed: currentState === 'entregado',
-                current: currentState === 'entregado'
+                status: 'Entrega Delivery', 
+                completed: ['entrega_delivery', 'recibido'].includes(currentState),
+                current: currentState === 'entrega_delivery'
+            },
+            { 
+                status: 'Recibido', 
+                completed: currentState === 'recibido',
+                current: currentState === 'recibido'
             },
         ];
     };
@@ -112,16 +132,18 @@ const OrderStatus = () => {
     const getProgressPercentage = (estado: string) => {
         const currentState = estado.toLowerCase();
         switch (currentState) {
+            case 'enviando': return 12.5;
             case 'procesando': return 25;
-            case 'preparando': return 50;
+            case 'en_preparacion': return 37.5;
+            case 'cocina_completa': return 50;
+            case 'empaquetando': return 62.5;
             case 'pedido_en_camino': return 75;
-            case 'entregado': return 100;
+            case 'entrega_delivery': return 87.5;
+            case 'recibido': return 100;
             case 'cancelado': return 0;
             default: return 0;
         }
-    };
-
-    if (loading) {
+    };    if (loading) {
         return (
             <div className="min-h-screen flex flex-col bg-secondary">
                 <Header />
@@ -194,7 +216,8 @@ const OrderStatus = () => {
     const steps = getStepsFromStatus(orderStatus.estado);
     const progressPercentage = getProgressPercentage(orderStatus.estado);
     const isCancelled = orderStatus.estado.toLowerCase() === 'cancelado';
-    const isDelivered = orderStatus.estado.toLowerCase() === 'entregado';
+    const isDelivered = orderStatus.estado.toLowerCase() === 'entrega_delivery';
+    const isConfirmed = orderStatus.estado.toLowerCase() === 'recibido';
 
     return (
         <div className="min-h-screen flex flex-col bg-secondary">
@@ -423,7 +446,7 @@ const OrderStatus = () => {
                                 </p>
                                 
                                 {/* Botón de confirmar pedido cuando está entregado */}
-                                {isDelivered && !confirmSuccess && (
+                                {isDelivered && !confirmSuccess && !isConfirmed && (
                                     <motion.div
                                         initial={{ opacity: 0, y: 10 }}
                                         animate={{ opacity: 1, y: 0 }}
@@ -463,6 +486,30 @@ const OrderStatus = () => {
                                         <p className="text-xs text-text-light mt-3">
                                             Al confirmar, estás indicando que recibiste tu pedido satisfactoriamente
                                         </p>
+                                    </motion.div>
+                                )}
+                                
+                                {/* Mensaje cuando ya está confirmado */}
+                                {isConfirmed && (
+                                    <motion.div
+                                        initial={{ opacity: 0, scale: 0.9 }}
+                                        animate={{ opacity: 1, scale: 1 }}
+                                        className="mt-6 pt-6 border-t border-gray-200 bg-green-50 rounded-lg p-4"
+                                    >
+                                        <div className="flex items-center justify-center gap-3 text-green-700">
+                                            <motion.span
+                                                initial={{ scale: 0 }}
+                                                animate={{ scale: 1 }}
+                                                transition={{ type: "spring", stiffness: 200, damping: 10 }}
+                                                className="text-3xl"
+                                            >
+                                                ✓
+                                            </motion.span>
+                                            <div>
+                                                <p className="font-bold text-lg">¡Pedido Confirmado!</p>
+                                                <p className="text-sm">Gracias por confirmar la recepción</p>
+                                            </div>
+                                        </div>
                                     </motion.div>
                                 )}
                             </motion.div>

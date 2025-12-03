@@ -35,6 +35,9 @@ export interface RegisterRequest {
 export interface RegisterResponse {
     message: string;
     correo: string;
+    token: string,
+    expirers: string;
+    role: string;
 }
 
 

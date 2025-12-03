@@ -1,31 +1,32 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import Header from '@components/Header';
 import Footer from '@components/Footer';
+import { useOrderStore } from '@store/useOrderStore';
 
 const Order = () => {
-    const location = useLocation();
     const navigate = useNavigate();
-    const cart = location.state?.cart || [];
+    const { cart, getTotal, updateQuantity, removeFromCart, clearCart } = useOrderStore();
 
-    const total = cart.reduce((acc: number, item: any) => acc + (item.price * item.quantity), 0);
+    const total = getTotal();
 
     const handleCreateOrder = () => {
         // TODO: Implement actual order creation API call
         const orderId = Math.floor(Math.random() * 10000);
+        clearCart();
         navigate(`/order-status/${orderId}`);
     };
 
     if (cart.length === 0) {
         return (
-            <div className="min-h-screen flex flex-col bg-[var(--color-secondary)]">
+            <div className="min-h-screen flex flex-col bg-white">
                 <Header />
-                <main className="flex-grow flex items-center justify-center">
+                <main className="grow flex items-center justify-center">
                     <div className="text-center">
-                        <h2 className="text-2xl text-white mb-4">Tu pedido está vacío</h2>
+                        <h2 className="text-2xl text-black mb-4">Tu pedido está vacío</h2>
                         <button
                             onClick={() => navigate('/menu')}
-                            className="text-[var(--color-primary)] hover:underline"
+                            className="text-primary hover:underline"
                         >
                             Volver a la carta
                         </button>
@@ -37,38 +38,62 @@ const Order = () => {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-[var(--color-secondary)]">
+        <div className="min-h-screen flex flex-col bg-secondary">
             <Header />
-            <main className="flex-grow pt-24 pb-12 px-4 container mx-auto max-w-4xl">
-                <h1 className="text-3xl font-bold text-white mb-8">Resumen del Pedido</h1>
+            <main className="grow pt-24 pb-12 px-4 container mx-auto max-w-4xl">
+                <h1 className="text-3xl font-bold text-black mb-8">Resumen del Pedido</h1>
 
-                <div className="bg-[var(--color-surface)] rounded-lg p-6 border border-gray-800 mb-8">
+                <div className="bg-surface rounded-lg p-6 border border-gray-800 mb-8">
                     {cart.map((item: any) => (
                         <div key={item.id} className="flex justify-between items-center py-4 border-b border-gray-800 last:border-0">
-                            <div>
-                                <h3 className="text-white font-bold">{item.name}</h3>
-                                <p className="text-gray-400 text-sm">Cantidad: {item.quantity}</p>
+                            <div className="flex-1">
+                                <h3 className="text-black font-bold">{item.name}</h3>
+                                <div className="flex items-center gap-4 mt-2">
+                                    <div className="flex items-center border border-gray-300 rounded">
+                                        <button
+                                            onClick={() => updateQuantity(item.id, item.quantity - 1)}
+                                            className="px-3 py-1 hover:bg-gray-100 transition-colors"
+                                        >
+                                            -
+                                        </button>
+                                        <span className="px-4 py-1 border-x border-gray-300 font-bold">
+                                            {item.quantity}
+                                        </span>
+                                        <button
+                                            onClick={() => updateQuantity(item.id, item.quantity + 1)}
+                                            className="px-3 py-1 hover:bg-gray-100 transition-colors"
+                                        >
+                                            +
+                                        </button>
+                                    </div>
+                                    <button
+                                        onClick={() => removeFromCart(item.id)}
+                                        className="text-red-600 hover:text-red-800 text-sm"
+                                    >
+                                        Eliminar
+                                    </button>
+                                </div>
                             </div>
-                            <p className="text-[var(--color-primary)] font-bold">S/ {item.price * item.quantity}</p>
+                            <p className="text-primary font-bold">S/ {(item.price * item.quantity).toFixed(2)}</p>
                         </div>
                     ))}
 
                     <div className="mt-6 pt-6 border-t border-gray-700 flex justify-between items-center">
                         <span className="text-xl text-white font-bold">Total</span>
-                        <span className="text-2xl text-[var(--color-primary)] font-bold">S/ {total}</span>
+                        <span className="text-2xl text-primary font-bold">S/ {total.toFixed(2)}</span>
                     </div>
                 </div>
 
                 <div className="flex justify-end gap-4">
                     <button
                         onClick={() => navigate('/menu')}
-                        className="px-6 py-3 border border-gray-600 text-gray-300 rounded hover:border-white hover:text-white transition-colors"
+                        className="px-6 py-3 border border-gray-300 text-gray-700 bg-white rounded hover:border-gray-400 transition-colors"
                     >
                         Seguir Pidiendo
                     </button>
                     <button
                         onClick={handleCreateOrder}
-                        className="px-8 py-3 bg-[var(--color-primary)] text-black font-bold rounded hover:bg-[var(--color-primary-hover)] transition-colors uppercase tracking-widest"
+                        className="px-8 py-3 bg-primary text-white font-bold rounded hover:bg-primary-hover transition-colors uppercase tracking-widest"
                     >
                         Confirmar Pedido
                     </button>

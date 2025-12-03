@@ -9,6 +9,7 @@ import ProductDetail from "@pages/ProductDetail";
 import Order from "@pages/Order";
 import OrderStatus from "@pages/OrderStatus";
 import Profile from "@pages/Profile";
+import MyOrders from "@pages/MyOrders";
 import App from "../App";
 
 export const router = createBrowserRouter([
@@ -42,6 +43,7 @@ export const router = createBrowserRouter([
             {
                 element: <ProtectedRoute />,
                 children: [
+                    { path: "my-orders", element: <MyOrders /> },
                     { path: "profile", element: <Profile /> },
                     { path: "order", element: <Order /> },
                     { path: "order-status/:orderId", element: <OrderStatus /> },

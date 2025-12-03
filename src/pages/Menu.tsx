@@ -7,6 +7,7 @@ import type { Product } from '@interfaces/product';
 import { useLocation } from '@hooks/useLocations';
 import EmptySearch from '@components/EmptySearch';
 import useDebounce from '@hooks/useDebounce';
+import { useOrderStore } from '@store/useOrderStore';
 
 const CATEGORIES = [
     'Todos',
@@ -34,7 +35,7 @@ const Menu = () => {
     const [selectedCategory, setSelectedCategory] = useState('Todos');
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
-    const [cart, setCart] = useState<{ id: string, name: string, price: number, quantity: number }[]>([]);
+    const { cart, addToCart, getTotalItems } = useOrderStore();
     const {currentLocation, setLocationById, getAllLocationNameAndIds } = useLocation();
     const [page, setPage] = useState(0);
     const [, setNextToken] = useState<string | null>(null);
@@ -47,7 +48,7 @@ const Menu = () => {
                 setLoading(true);
                 const finalCategory = selectedCategory === "Todos" ? undefined : selectedCategory;
                 const response = await getProducts(currentLocation.id, {
-                    size: 10,
+                    size: 15,
                     page: page,
                     categoria: finalCategory,
                     include_total: true,
@@ -78,20 +79,18 @@ const Menu = () => {
     }, [currentLocation, selectedCategory, page, debouncedSearchTerm]);
 
 
-    const addToCart = (item: Product) => {
-        setCart(prev => {
-            const itemId = `${item.local_id}-${item.producto_id}`;
-
-            const existing = prev.find(i => i.id === itemId);
-            if (existing) {
-                return prev.map(i => i.id === itemId ? { ...i, quantity: i.quantity + 1 } : i);
-            }
-            return [...prev, { id: itemId, name: item.nombre, price: Number(item.precio), quantity: 1 }];
+    const handleAddToCart = (item: Product) => {
+        addToCart({
+            id: `${item.local_id}-${item.producto_id}`,
+            producto_id: item.producto_id,
+            local_id: item.local_id,
+            name: item.nombre,
+            price: Number(item.precio)
         });
     };
 
     const goToOrder = () => {
-        navigate('/order', { state: { cart } });
+        navigate('/order');
     };
 
     return (
@@ -177,7 +176,7 @@ const Menu = () => {
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
-                                            addToCart(item);
+                                            handleAddToCart(item);
                                         }}
                                         className="w-full py-2 border border-primary text-primary hover:bg-primary hover:text-white transition-colors rounded text-sm uppercase tracking-wider font-semibold"
                                     >
@@ -224,7 +223,7 @@ const Menu = () => {
                             <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z" />
                             </svg>
-                            Ver Pedido ({cart.reduce((acc, item) => acc + item.quantity, 0)})
+                            Ver Pedido ({getTotalItems()})
                         </button>
                     </div>
                 )}

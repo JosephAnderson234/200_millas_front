@@ -4,6 +4,7 @@ import Header from '../components/Header';
 import Footer from '../components/Footer';
 import { getProductById } from '@services/product';
 import type { Product } from '@interfaces/product';
+import { useOrderStore } from '@store/useOrderStore';
 
 const ProductDetail = () => {
     const { localId, productId } = useParams<{ localId: string; productId: string }>();
@@ -12,6 +13,7 @@ const ProductDetail = () => {
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [quantity, setQuantity] = useState(1);
+    const { addToCart } = useOrderStore();
 
     useEffect(() => {
         const fetchProduct = async () => {
@@ -50,18 +52,19 @@ const ProductDetail = () => {
     const handleAddToCart = () => {
         if (!product) return;
         
-        // Aquí puedes implementar la lógica para agregar al carrito
-        // Por ahora, redirigimos a la página de pedido
-        navigate('/order', { 
-            state: { 
-                cart: [{ 
-                    id: `${product.local_id}-${product.producto_id}`, 
-                    name: product.nombre, 
-                    price: Number(product.precio), 
-                    quantity 
-                }] 
-            } 
-        });
+        // Agregar la cantidad especificada al carrito
+        for (let i = 0; i < quantity; i++) {
+            addToCart({
+                id: `${product.local_id}-${product.producto_id}`,
+                producto_id: product.producto_id,
+                local_id: product.local_id,
+                name: product.nombre,
+                price: Number(product.precio)
+            });
+        }
+        
+        // Redirigir a la página de pedido
+        navigate('/order');
     };
 
     const increaseQuantity = () => {
@@ -78,12 +81,12 @@ const ProductDetail = () => {
 
     if (loading) {
         return (
-            <div className="min-h-screen flex flex-col bg-[var(--color-secondary)]">
+            <div className="min-h-screen flex flex-col bg-secondary">
                 <Header />
                 <main className="flex-grow pt-24 pb-12 px-4 container mx-auto flex items-center justify-center">
                     <div className="text-center">
-                        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-[var(--color-primary)] mx-auto"></div>
-                        <p className="mt-4 text-[var(--color-text-light)]">Cargando producto...</p>
+                        <div className="animate-spin rounded-full h-16 w-16 border-b-2 border-primary mx-auto"></div>
+                        <p className="mt-4 text-text-light">Cargando producto...</p>
                     </div>
                 </main>
                 <Footer />
@@ -93,16 +96,16 @@ const ProductDetail = () => {
 
     if (error || !product) {
         return (
-            <div className="min-h-screen flex flex-col bg-[var(--color-secondary)]">
+            <div className="min-h-screen flex flex-col bg-secondary">
                 <Header />
                 <main className="flex-grow pt-24 pb-12 px-4 container mx-auto">
                     <div className="text-center py-12">
-                        <h2 className="text-2xl font-bold text-[var(--color-text)] mb-4">
+                        <h2 className="text-2xl font-bold text-text mb-4">
                             {error || 'Producto no encontrado'}
                         </h2>
                         <button
                             onClick={() => navigate('/menu')}
-                            className="bg-[var(--color-primary)] text-white px-6 py-2 rounded hover:bg-[var(--color-primary-hover)] transition-colors"
+                            className="bg-primary text-white px-6 py-2 rounded hover:bg-primary-hover transition-colors"
                         >
                             Volver al Menú
                         </button>
@@ -114,12 +117,12 @@ const ProductDetail = () => {
     }
 
     return (
-        <div className="min-h-screen flex flex-col bg-[var(--color-secondary)]">
+        <div className="min-h-screen flex flex-col bg-secondary">
             <Header />
             <main className="flex-grow pt-24 pb-12 px-4 container mx-auto">
                 <button
                     onClick={() => navigate('/menu')}
-                    className="mb-6 text-[var(--color-primary)] hover:underline flex items-center gap-2"
+                    className="mb-6 text-primary hover:underline flex items-center gap-2"
                 >
                     <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M10 19l-7-7m0 0l7-7m-7 7h18" />
@@ -129,7 +132,7 @@ const ProductDetail = () => {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-12">
                     {/* Imagen del Producto */}
-                    <div className="bg-[var(--color-surface)] rounded-lg overflow-hidden shadow-lg">
+                    <div className="bg-surface rounded-lg overflow-hidden shadow-lg">
                         {product.imagen_url ? (
                             <img
                                 src={product.imagen_url}
@@ -147,18 +150,18 @@ const ProductDetail = () => {
                     <div className="flex flex-col justify-between">
                         <div>
                             <div className="mb-4">
-                                <span className="inline-block bg-[var(--color-primary)] text-white px-4 py-1 rounded-full text-sm font-bold mb-2">
+                                <span className="inline-block bg-primary text-white px-4 py-1 rounded-full text-sm font-bold mb-2">
                                     {product.categoria}
                                 </span>
                             </div>
-                            <h1 className="text-4xl font-bold text-[var(--color-text)] mb-4">
+                            <h1 className="text-4xl font-bold text-text mb-4">
                                 {product.nombre}
                             </h1>
-                            <p className="text-[var(--color-text-light)] text-lg mb-6 leading-relaxed">
+                            <p className="text-text-light text-lg mb-6 leading-relaxed">
                                 {product.descripcion}
                             </p>
                             <div className="flex items-center gap-4 mb-8">
-                                <span className="text-4xl font-bold text-[var(--color-primary)]">
+                                <span className="text-4xl font-bold text-primary">
                                     S/ {Number(product.precio).toFixed(2)}
                                 </span>
                                 {Number(product.stock) > 0 ? (
@@ -177,7 +180,7 @@ const ProductDetail = () => {
                         {Number(product.stock) > 0 && (
                             <div className="space-y-4">
                                 <div className="flex items-center gap-4">
-                                    <span className="text-[var(--color-text)] font-semibold">Cantidad:</span>
+                                    <span className="text-text font-semibold">Cantidad:</span>
                                     <div className="flex items-center border border-gray-300 rounded">
                                         <button
                                             onClick={decreaseQuantity}
@@ -200,7 +203,7 @@ const ProductDetail = () => {
                                 </div>
                                 <button
                                     onClick={handleAddToCart}
-                                    className="w-full bg-[var(--color-primary)] text-white py-4 rounded font-bold text-lg hover:bg-[var(--color-primary-hover)] transition-colors"
+                                    className="w-full bg-primary text-white py-4 rounded font-bold text-lg hover:bg-primary-hover transition-colors"
                                 >
                                     Agregar al Pedido - S/ {(Number(product.precio) * quantity).toFixed(2)}
                                 </button>

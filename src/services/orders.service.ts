@@ -49,6 +49,24 @@ export interface ConfirmOrderResponse {
     order_id: string;
 }
 
+export interface OrderHistoryResponse {
+    pedidos: Array<{
+        local_id: string;
+        pedido_id: string;
+        correo: string;
+        productos: Array<{
+            producto_id: string;
+            cantidad: number;
+        }>;
+        costo: number | string;
+        direccion: string;
+        estado: string;
+        created_at: string;
+    }>;
+    size: number;
+    next_token: string | null;
+}
+
 class OrdersService {
     async createOrder(request: CreateOrderRequest): Promise<CreateOrderResponse> {
         
@@ -86,6 +104,19 @@ class OrdersService {
         const response = await api.post<ConfirmOrderRequest, ConfirmOrderResponse>(
             request,
             { url: "/pedido/confirmar" }
+        );
+
+        return response.data;
+    }
+
+    /**
+     * Obtiene el historial de pedidos del usuario autenticado
+     */
+    async getOrderHistory(): Promise<OrderHistoryResponse> {
+        const api = await Api.getInstance("clientes");
+        const response = await api.post<void, OrderHistoryResponse>(
+            undefined,
+            { url: "/pedido/historial" }
         );
 
         return response.data;
